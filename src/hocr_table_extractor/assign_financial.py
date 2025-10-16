@@ -3,14 +3,19 @@ from __future__ import annotations
 from typing import Any, Dict, List, Tuple
 import re
 
-# Números con $, miles, decimales y negativos () o -
-NUM_RE = re.compile(r"""^
-    [\$\(]?\s*
-    -?
-    (?:\d{1,3}(?:[,\s]\d{3})+|\d+)?   # enteros con separadores o simple
-    (?:\.\d+)?                        # decimales
-    \s*[\)]?
-    $""", re.VERBOSE)
+# Requiere al menos un dígito O bien un guion solitario (cero).
+# Soporta $, comas, espacios de miles, decimales y negativos con paréntesis.
+NUM_TOKEN_RE = re.compile(r"""^(
+    -                                   # guion solo (lo trataremos como cero)
+    |
+    \$?\(?-?\d{1,3}(?:[,\s]\d{3})*(?:\.\d+)?\)?  # $ 1,234.56 o (57,519) o 246
+)$""", re.VERBOSE)
+
+def _is_numeric_span(txt: str) -> bool:
+    s = txt.strip()
+    # eliminar espacios internos redundantes para tokens como "$ 101,606"
+    s = s.replace(" ", "")
+    return bool(NUM_TOKEN_RE.match(s))
 
 def _merge_adjacent_tokens(tokens: List[Any], max_gap_px: int = 18) -> List[Tuple[int, int, str]]:
     """Une tokens contiguos horizontalmente → spans [(x1,x2,text), ...]."""
@@ -39,11 +44,17 @@ def assign_financial_three_columns(lines: List[Dict[str, Any]],
                                    ) -> List[Dict[str, Any]]:
     """
     Para cada línea:
-      - fusiona tokens adyacentes → spans
-      - detecta spans numéricos
+      - fusiona tokens adyacentes (spans)
+      - detecta spans numéricos (requiere dígito o '-' como cero)
       - toma los 2 numéricos más a la derecha como columnas de año
       - el resto a la izquierda se concatena como 'Cuenta'
-    Devuelve: dict con 'cells' y 'meta': {'num_count': X}
+
+    Devuelve dict por línea:
+      {
+        page, y_top, y_bot,
+        cells=[Cuenta, col_A, col_B],
+        meta={"num_count": int, "has_label": bool}
+      }
     """
     records = []
     for ln in lines:
@@ -51,11 +62,12 @@ def assign_financial_three_columns(lines: List[Dict[str, Any]],
         spans = _merge_adjacent_tokens(ln["tokens"], max_gap_px=18)
 
         if not spans:
-            records.append(dict(page=ln["page"], y_top=y1, y_bot=y2, cells=["", "", ""], meta={"num_count": 0}))
+            records.append(dict(page=ln["page"], y_top=y1, y_bot=y2,
+                                cells=["", "", ""], meta={"num_count": 0, "has_label": False}))
             continue
 
-        numeric_spans = [(x1, x2, txt) for (x1, x2, txt) in spans if NUM_RE.match(txt.replace(" ", ""))]
-        text_spans    = [(x1, x2, txt) for (x1, x2, txt) in spans if (x1, x2, txt) not in numeric_spans]
+        numeric_spans = [(x1, x2, txt) for (x1, x2, txt) in spans if _is_numeric_span(txt)]
+        text_spans    = [(x1, x2, txt) for (x1, x2, txt) in spans if not _is_numeric_span(txt)]
         num_sorted = sorted(numeric_spans, key=lambda s: s[0])
 
         col_A = col_B = ""
@@ -71,10 +83,11 @@ def assign_financial_three_columns(lines: List[Dict[str, Any]],
 
         label_parts = [txt for (_, _, txt) in sorted(text_spans, key=lambda s: s[0])]
         label = " ".join(label_parts).strip()
+        has_label = bool(label)
 
         records.append(dict(
             page=ln["page"], y_top=y1, y_bot=y2,
             cells=[label, col_A, col_B],
-            meta={"num_count": len(num_sorted)}
+            meta={"num_count": len(num_sorted), "has_label": has_label}
         ))
     return records
