@@ -1,0 +1,84 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.coverage
+.coverage.*
+.cache/
+dist/
+build/
+htmlcov/
+coverage.xml
+
+# --- Virtual envs ---
+venv/
+.env/
+.env.*
+.venv/
+pip-wheel-metadata/
+
+# --- Project local / tooling ---
+*.log
+logs/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.spyproject/
+.ipynb_checkpoints/
+.python-version
+
+# --- Jupyter/Reports (si llegas a usar notebooks) ---
+*.ipynb_checkpoints
+*.nbconvert.ipynb
+
+# --- Configs locales / secrets ---
+*.local
+*.secret
+*secrets*.json
+*.key
+*.pem
+*.crt
+
+# --- Data & outputs (ajústalo a tus necesidades) ---
+# Ignora outputs generados
+outputs/
+*.csv
+!examples/*.csv          # pero permite CSVs de ejemplo en examples/
+
+# Ignora binarios pesados (PDF escaneados) por defecto
+*.pdf
+!examples/*.pdf          # permite PDFs de ejemplo pequeños en examples/
+
+# Si subes HOCRs grandes, puedes ignorarlos por defecto…
+# *.hocr
+# …y mantener solo ejemplos:
+!examples/*.hocr
+
+# --- Artefactos temporales del proyecto demo de este chat ---
+hocr_table_extractor.zip
+
+# --- Node / Front (por si integras UI ligera) ---
+node_modules/
+*.tsbuildinfo
+
+# --- OS / misc ---
+.Spotlight-V100
+.Trashes
+*.swp
+*.swo
+
+#Ignora archivos .hocr
+*.hocr
+
+#Ignora archivos .txt
+*.txt
