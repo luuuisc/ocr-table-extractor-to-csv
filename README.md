@@ -1,5 +1,9 @@
 # HOCR Table Extractor
 
+<p align="center">
+  <img src="images/app.png" alt="App UI" width="720">
+</p>
+
 Una herramienta modular para reconstruir datos tabulares a partir de archivos HOCR y exportarlos a formato CSV. El proyecto utiliza un enfoque personalizable para analizar la estructura de la tabla, permitiendo al usuario elegir entre diferentes estrategias de extracción.
 
 ## Estado del Proyecto y Guía para Evaluación
@@ -20,11 +24,13 @@ Para una explicación técnica detallada de cada layout y la arquitectura genera
 
 2.  **Ejecutar el extractor (Modo Recomendado):**
 
-    Para obtener el mejor resultado, utilice el layout `generic`.
+    Para obtener el mejor resultado, utilice el layout `generic`, de preferencia especificando el número de columnas que se esperan
 
     ```bash
-    python run.py ruta/al/input.hocr ruta/al/output.csv --layout generic
+    python run.py ruta/al/input.hocr ruta/al/output.csv --layout generic --expected-n-cols 4
     ```
+> [!IMPORTANT]
+> Los archivos `.hocr` deben estar en la raíz del proyecto
 
 ## Opciones Avanzadas y Layouts
 
