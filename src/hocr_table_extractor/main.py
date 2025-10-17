@@ -107,5 +107,13 @@ def hocr_to_csv(hocr_path: str,
         rows_to_csv(body, header, csv_path)
         log.info(f"✔ CSV escrito en: {csv_path}")
 
+    elif layout == "professional":
+        from .layout_professional import extract_professional_layout
+        extract_professional_layout(
+            hocr_path=hocr_path,
+            csv_path=csv_path,
+            table_bbox=table_bbox
+        )
+
     else:
-        log.error(f"Layout desconocido: '{layout}'. Use 'financial', 'dynamic' o 'generic'.")
+        log.error(f"Layout desconocido: '{layout}'. Use 'financial', 'dynamic', 'generic' o 'professional'.")

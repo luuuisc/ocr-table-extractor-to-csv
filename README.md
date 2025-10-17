@@ -2,59 +2,67 @@
 
 Una herramienta modular para reconstruir datos tabulares a partir de archivos HOCR y exportarlos a formato CSV. El proyecto utiliza un enfoque personalizable para analizar la estructura de la tabla, permitiendo al usuario elegir entre diferentes estrategias de extracción.
 
-## Características
+## Estado del Proyecto y Guía para Evaluación
 
-- **Múltiples Modos de Extracción:**
-  - `dynamic`: Un modo avanzado que infiere automáticamente las columnas numéricas y de texto. Ideal para informes financieros y tablas complejas.
-  - `financial`: Una heurística especializada para balances con el formato `Cuenta | Valor Año 1 | Valor Año 2`.
-  - `generic`: Un modo versátil que detecta columnas basándose en los espacios verticales, utilizando perfiles de proyección. Útil para tablas genéricas bien estructuradas.
-- **Interfaz de Línea de Comandos (CLI):** `run.py` proporciona una CLI completa para controlar el proceso de extracción.
-- **Personalización:** Permite especificar el área de la tabla (`--bbox`), el número de columnas esperado (`--expected-n_cols`), y otros parámetros para afinar la extracción.
-- **Manejo de Dependencias:** Incluye un archivo `requirements.txt` para una fácil instalación.
+Este proyecto se ha desarrollado de forma iterativa, explorando diferentes algoritmos para la extracción de tablas. Como resultado, existen múltiples "layouts" o estrategias de extracción.
+
+**Para fines de evaluación, se recomienda probar el layout `generic`**, ya que actualmente es el que produce los resultados más robustos y consistentes en una amplia variedad de documentos. Los otros layouts (`dynamic`, `financial`, `professional`) representan diferentes etapas de la evolución del proyecto y, aunque funcionales, pueden no ser tan estables.
+
+Para una explicación técnica detallada de cada layout y la arquitectura general, por favor consulte el archivo `ARCHITECTURE.md`.
 
 ## Guía de Inicio Rápido
 
-1. **Instalar dependencias:**
+1.  **Instalar dependencias:**
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-2. **Ejecutar el extractor:**
+2.  **Ejecutar el extractor (Modo Recomendado):**
 
-   El script principal es `run.py`. Debes proporcionar la ruta al archivo HOCR de entrada y la ruta para el archivo CSV de salida.
+    Para obtener el mejor resultado, utilice el layout `generic`.
 
-   ```bash
-   python run.py /ruta/al/input.hocr /ruta/al/output.csv
-   ```
+    ```bash
+    python run.py ruta/al/input.hocr ruta/al/output.csv --layout generic
+    ```
 
-### Ejemplos de Uso
+## Opciones Avanzadas y Layouts
 
-- **Usar el modo genérico:**
+### Layout `generic` (Recomendado)
 
-  ```bash
-  python run.py input.hocr output.csv --layout generic
-  ```
+Es el layout más fiable. Utiliza un doble análisis de perfiles de proyección (vertical para columnas y horizontal para filas) para reconstruir la tabla. Es la implementación de referencia.
 
-- **Especificar el número de columnas en modo genérico:**
+-   **Uso:**
+    ```bash
+    python run.py input.hocr output.csv --layout generic
+    ```
+-   **Especificar número de columnas (opcional):**
+    ```bash
+    python run.py input.hocr output.csv --layout generic --expected-n-cols 4
+    ```
 
-  ```bash
-  python run.py input.hocr output.csv --layout generic --expected-n-cols 4
-  ```
+### Layout `professional` (Experimental)
 
-- **Limitar la extracción a un área específica (Bounding Box):**
+Este layout es un híbrido que intenta combinar la robusta construcción de tablas del `generic` con características avanzadas como la detección de jerarquía y la limpieza de datos. Aunque es funcional, su integración aún está en desarrollo y puede producir resultados inesperados.
 
-  Si la página contiene mucho "ruido" fuera de la tabla, puedes especificar las coordenadas `x1 y1 x2 y2` del área que te interesa.
+-   **Uso:**
+    ```bash
+    python run.py input.hocr output.csv --layout professional
+    ```
 
-  ```bash
-  python run.py input.hocr output.csv --bbox 80 220 1750 2450
-  ```
+### Otros Parámetros
 
-- **Ajustar el nivel de logs para depuración:**
+-   **Limitar a un área específica (Bounding Box):**
 
-  ```bash
-  python run.py input.hocr output.csv --loglevel DEBUG
-  ```
+    ```bash
+    python run.py input.hocr output.csv --bbox 80 220 1750 2450
+    ```
+
+-   **Ajustar el nivel de logs para depuración:**
+
+    ```bash
+    python run.py input.hocr output.csv --loglevel DEBUG
+    ```
 
 Para ver todas las opciones disponibles, ejecuta:
 
@@ -62,25 +70,9 @@ Para ver todas las opciones disponibles, ejecuta:
 python run.py --help
 ```
 
-## Estructura del Proyecto
-
-- `run.py`: Punto de entrada principal y CLI.
-- `requirements.txt`: Lista de dependencias del proyecto.
-- `src/hocr_table_extractor/`:
-  - `main.py`: Orquesta el flujo de extracción.
-  - `parser.py`: Parsea el HOCR y extrae tokens.
-  - `lines.py`: Agrupa tokens en líneas.
-  - `columns.py`: Estima las columnas (usando perfiles de proyección).
-  - `column_model.py`: Infiere columnas numéricas para el modo `dynamic`.
-  - `assign.py`, `assign_dynamic.py`, `assign_financial.py`: Asignan palabras a celdas.
-  - `rows.py`: Fusiona líneas en filas.
-  - `postprocess.py`: Realiza limpieza en los datos extraídos.
-  - `exporters.py`: Exporta los datos a CSV.
-  - `structures.py`: Clases de datos y utilidades de Bounding Box.
-
 ## Dependencias
 
-- Python 3.9+
-- `beautifulsoup4`
-- `lxml`
-- `numpy`
+-   Python 3.9+
+-   `beautifulsoup4`
+-   `lxml`
+-   `numpy`

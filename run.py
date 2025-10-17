@@ -15,7 +15,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Extraer tablas de archivos hOCR a CSV.")
     parser.add_argument("hocr_path", type=str, help="Ruta al archivo de entrada .hocr")
     parser.add_argument("csv_path", type=str, help="Ruta al archivo de salida .csv")
-    parser.add_argument("--layout", type=str, default="dynamic", choices=["financial", "dynamic", "generic"],
+    parser.add_argument("--layout", type=str, default="dynamic", choices=["financial", "dynamic", "generic", "professional"],
                         help="Modo de extracción de tabla (default: dynamic)")
     parser.add_argument("--bbox", type=int, nargs=4, metavar=('X1', 'Y1', 'X2', 'Y2'),
                         help="Bbox opcional de la tabla: x1 y1 x2 y2")

@@ -81,4 +81,4 @@ node_modules/
 *.hocr
 
 #Ignora archivos .txt
-*.txt
+*prompt.txt
