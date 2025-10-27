@@ -14,6 +14,8 @@ El código fuente principal reside en `src/hocr_table_extractor/`. A continuaci�
 - **`main.py`**: El "cerebro" del extractor. Contiene la función `hocr_to_csv` que, basándose en el layout elegido, invoca la secuencia correcta de módulos para procesar el archivo.
 - **`parser.py`**: Módulo de bajo nivel responsable de parsear el archivo HOCR y extraer una lista de "Tokens" (palabras) con su texto y coordenadas.
 - **`structures.py` / `spatial.py`**: Definen las clases de datos fundamentales, como `Token`, `SpatialWord` y `TableGrid`, que representan los elementos del documento.
+- **`dataset_builder.py` / `dataset_cli.py`**: Generan datasets JSONL con etiquetas `HEADER_COL_i` / `BODY_COL_i` usando el layout `generic` como maestro. Se emplean para fine-tunear LayoutLM.
+- **`train_layoutlm.py`**: Script de entrenamiento que monta un `Trainer` de Hugging Face para LayoutLMv3, consumiendo los JSONL anteriores y produciendo checkpoints reutilizables.
 
 ---
 
@@ -49,3 +51,12 @@ Este layout es el resultado de nuestro proceso iterativo y su objetivo es ser el
 
 **Estado Actual y Puntos a Mejorar:**
 La fusión de las dos lógicas (la construcción de `generic` y el enriquecimiento de `professional`) es compleja. La interacción entre la fusión de filas de `generic` y el algoritmo de detección de jerarquía de `professional` puede no ser perfecta aún, lo que podría explicar por qué en ciertos documentos el resultado de `generic` sigue siendo visualmente más limpio. La base para el layout más potente está sentada, pero requiere más ajustes finos.
+
+### 3.4. Layout `transformers` (LayoutLMv3 + OCR)
+
+Nuevo pipeline que opera directamente sobre la **imagen**:
+1. `pytesseract` obtiene palabras y bounding boxes (filtradas por confianza y, opcionalmente, por `table_bbox`).
+2. `LayoutLMv3Processor` + `LayoutLMv3ForTokenClassification` (por defecto `microsoft/layoutlmv3-base`, pero puede cargarse un checkpoint fine-tuned) predicen etiquetas token a token (`HEADER_COL_i`, `BODY_COL_i`, `OTHER`).
+3. Las etiquetas se consolidan en palabras, se proyectan perfiles verticales/horizontales y se reconstruyen filas y columnas. Si el modelo no produce señal suficiente, se aplica un fallback heurístico (`grid_builder` + `process_grid_data`).
+
+**Entrenamiento**: el dataset se autogenera a partir de HOCR + CSV de referencia (`dataset_cli`). `train_layoutlm.py` expone un flujo reproducible que guarda modelo y processor para reutilizarlos con el layout `transformers`.

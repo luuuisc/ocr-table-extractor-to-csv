@@ -8,3 +8,12 @@ six==1.17.0
 soupsieve==2.8
 typing_extensions==4.15.0
 tzdata==2025.2
+
+# Dependencias para LayoutLMv3
+transformers
+torch
+torchaudio
+torchvision
+timm==1.0.7
+Pillow
+pytesseract==0.3.10

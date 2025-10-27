@@ -54,6 +54,9 @@ Thumbs.db
 outputs/
 *.csv
 !examples/*.csv          # pero permite CSVs de ejemplo en examples/
+checkpoints/
+train_images/
+data/*.jsonl
 
 # Ignora binarios pesados (PDF escaneados) por defecto
 *.pdf
@@ -82,3 +85,8 @@ node_modules/
 
 #Ignora archivos .txt
 *prompt.txt
+
+#Ignora imagenes .png, .jpg, .jpeg
+*.png
+*.jpg
+*.jpeg
