@@ -204,6 +204,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fp16", action="store_true", help="Entrenar en mixed precision (requiere GPU).")
     parser.add_argument("--num-workers", type=int, default=4, help="Workers para DataLoader.")
     parser.add_argument("--loglevel", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
+    parser.add_argument("--metrics-json", help="Ruta opcional para guardar el historial de métricas (JSON).")
+    parser.add_argument("--metrics-csv", help="Ruta opcional para guardar el historial de métricas (CSV).")
     return parser.parse_args()
 
 
@@ -295,6 +297,28 @@ def main() -> None:
     trainer.save_model(args.output_dir)
     processor.save_pretrained(args.output_dir)
     log.info("Entrenamiento finalizado. Checkpoint guardado en %s", args.output_dir)
+
+    history = trainer.state.log_history
+    if args.metrics_json:
+        path = Path(args.metrics_json).expanduser()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as fh:
+            json.dump(history, fh, indent=2)
+        log.info("Historial de métricas guardado en JSON: %s", path)
+
+    if args.metrics_csv:
+        import csv
+
+        path_csv = Path(args.metrics_csv).expanduser()
+        path_csv.parent.mkdir(parents=True, exist_ok=True)
+        keys = sorted({k for record in history if isinstance(record, dict) for k in record.keys()})
+        with path_csv.open("w", encoding="utf-8", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=keys)
+            writer.writeheader()
+            for record in history:
+                if isinstance(record, dict):
+                    writer.writerow({k: record.get(k) for k in keys})
+        log.info("Historial de métricas guardado en CSV: %s", path_csv)
 
 
 if __name__ == "__main__":

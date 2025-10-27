@@ -1,0 +1,21 @@
+{
+  "numeric_by_column": [
+    {
+      "column": "Unnamed: 3",
+      "mse": 3276100.0,
+      "rmse": 1810.0,
+      "r2": NaN,
+      "n": 1
+    }
+  ],
+  "numeric_overall": {
+    "column": "overall",
+    "mse": 3276100.0,
+    "rmse": 1810.0,
+    "r2": NaN,
+    "n": 1
+  },
+  "text_accuracy": 0.40476190476190477,
+  "total_cells": 168,
+  "matched_cells": 68
+}

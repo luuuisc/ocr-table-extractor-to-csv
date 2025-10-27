@@ -124,20 +124,52 @@ Cada línea del JSONL contiene:
 
 El script `train_layoutlm.py` orquesta el fine-tuning usando los JSONL anteriores.
 
+> [!IMPORTANT] 
+> Antes de entrenar, genera el JSONL con `dataset_cli` (por ejemplo `data/layoutlm_full.jsonl`). Ajusta la ruta en los comandos de entrenamiento según el archivo que produzcas.
+
 ```bash
 python -m hocr_table_extractor.train_layoutlm \
-  --train-jsonl data/layoutlm_dataset.jsonl \
+  --train-jsonl data/layoutlm_full.jsonl \
   --output-dir checkpoints/layoutlm-finetuned \
   --batch-size 2 \
   --num-epochs 5 \
   --learning-rate 3e-5 \
-  --fp16
+  --fp16 \
+  --metrics-json reports/train_metrics.json \
+  --metrics-csv reports/train_metrics.csv
 ```
 
 - Usa `--eval-jsonl` para pasar un set de validación; si se omite, divide automáticamente el train.
 - El checkpoint resultante puede usarse con `--transformer-model`.
 - Si el script pide `accelerate`, instala `pip install 'accelerate>=0.26.0'`.
 - Guía paso a paso (entorno, dataset, entrenamiento, inferencia, troubleshooting): **[LAYOUTLM_WORKFLOW.md](LAYOUTLM_WORKFLOW.md)**
+
+**Ejemplo de métricas de entrenamiento** (extraídas de `reports/train_metrics.json`):
+
+- `loss` ≈ 1.41 en el paso 50, `train_loss` ≈ 1.21 al final (época 5). ↓ indica que el modelo aprende pero lentamente debido a la alta clase dominante (`BODY_COL_0`).
+- `eval_loss` ≈ 1.39 y `eval_token_accuracy` ≈ 0.38 → la precisión por token es baja; LayoutLM todavía no reconoce bien columnas múltiples.
+- `grad_norm` elevado (~9.57) sugiere gradientes largos; con más datos o reweighting podríamos estabilizarlo.
+
+**Siguientes pasos recomendados**
+- Aumentar el dataset etiquetado (más balances reales/sintéticos) para balancear columnas.
+- Reforzar el pipeline híbrido: usar LayoutLM para diferenciar encabezados/celdas y mantener perfiles espaciales para la posición.
+- Re-entrenar con scheduler y class weights para reducir el sesgo hacia `BODY_COL_0`.
+
+### Evaluar un layout (MSE / R² / Text accuracy)
+
+Para comparar un CSV generado contra la referencia (tipicamente la salida del layout `generic`) se puede usar el nuevo CLI `eval_cli`.
+
+```bash
+python -m hocr_table_extractor.eval_cli \
+  --reference salida_genericC.csv \
+  --predicted salida_transformersC.csv \
+  --report reports/eval_C.csv \
+  --json reports/eval_C.json
+```
+
+El comando calcula:
+- `text_accuracy`: porcentaje de celdas idénticas.
+- `MSE`, `RMSE`, `R²` por columna numérica y de forma global (los valores se infieren automáticamente, o puedes forzar columnas con `--numeric-columns col_1 col_2`).
 
 Para ver todas las opciones disponibles, ejecuta:
 

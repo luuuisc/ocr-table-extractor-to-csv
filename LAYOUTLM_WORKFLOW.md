@@ -114,7 +114,9 @@ PYTHONPATH=src python -m hocr_table_extractor.train_layoutlm \
   --num-epochs 5 \
   --learning-rate 3e-5 \
   --logging-steps 10 \
-  --num-workers 0
+  --num-workers 0 \
+  --metrics-json reports/train_log.json \
+  --metrics-csv reports/train_log.csv
 ```
 
 Notas:
@@ -123,6 +125,7 @@ Notas:
 - El script divide automáticamente el dataset si no se provee `--eval-jsonl`.
 
 Al finalizar, el directorio de salida debe contener `pytorch_model.bin` (o `model.safetensors`), `config.json`, `preprocessor_config.json`, etc.
+Si añades `--metrics-json/--metrics-csv`, también obtendrás el historial de pérdida/accuracy registrado por el Trainer en formatos fáciles de compartir.
 
 ## 4. Ejecución del layout `transformers`
 
@@ -163,6 +166,25 @@ diff -u salida_generic_1C.csv salida_transformers_1C.csv
 ```
 
 Por ahora, el layout `generic` sigue siendo el más estable. Usa `transformers` para experimentar con el modelo fine-tuneado y detectar oportunidades de mejora.
+
+## 6. Métricas cuantitativas (Text accuracy, MSE, R²)
+
+Además del diff visual, puedes cuantificar la calidad mediante el script `eval_cli`:
+
+```bash
+python -m hocr_table_extractor.eval_cli \
+  --reference salida_generic_1C.csv \
+  --predicted salida_transformers_1C.csv \
+  --report reports/eval_1C.csv \
+  --json reports/eval_1C.json
+```
+
+Valores reportados:
+
+- `text_accuracy`: proporción de celdas exactamente iguales (útil para celdas textuales).
+- `MSE`, `RMSE`, `R²`: comparan columnas numéricas; se infieren automáticamente, pero puedes especificar `--numeric-columns`.
+
+Estas métricas ayudan a argumentar mejoras frente al baseline durante una entrevista técnica.
 
 ## 6. Troubleshooting
 
